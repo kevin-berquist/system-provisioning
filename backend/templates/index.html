@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShoWare System Setup</title>
+    <link rel="stylesheet" href="/static/main.css">
+  </head>
+  <body>
+    <h1>ShoWare System Setup</h1>
+    <div class="toolbar">
+      <button id="create-dev" class="btn primary">Create Dev Site</button>
+    </div>
+
+    <h2>Queued Jobs</h2>
+    <div id="queued">
+      {% for j in queued %}
+      <div class="queued-item">
+        <div><strong>{{ j.name }}</strong></div>
+        <div class="muted">{{ j.database }} • {{ j.dev_site }}</div>
+        <div class="muted">{{ j.filename }} • {{ j.timestamp }}</div>
+      </div>
+      {% else %}
+      <div class="muted">No queued jobs</div>
+      {% endfor %}
+    </div>
+
+    <h2>Running Jobs</h2>
+    <div id="running">
+      {% for j in running %}
+      <div class="queued-item">
+        <div><strong>{{ j.name }}</strong></div>
+        <div class="muted">{{ j.database }} • {{ j.dev_site }}</div>
+        <div class="muted">{{ j.filename }} • {{ j.timestamp }}</div>
+      </div>
+      {% else %}
+      <div class="muted">No running jobs</div>
+      {% endfor %}
+    </div>
+
+    <h2>Ready for Production</h2>
+    <ul id="ready-list">
+      {% for r in ready %}
+      <li class="ready-row">
+        <div class="ready-meta">
+          <strong>{{ r.Name }}</strong>
+          <div class="muted">{{ r.DatabaseName }} • {{ r.CurrentDevWebSiteDomain }}</div>
+        </div>
+        <div>
+          <button class="btn setup-prod" data-name="{{ r.Name }}" data-db="{{ r.DatabaseName }}" data-gemini="{{ r.GeminiProjID }}" data-current="{{ r.CurrentDevWebSiteDomain }}">Setup Production</button>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Modal markup (hidden by default) -->
+    <div id="modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <h3 id="modal-title">Modal</h3>
+        <form id="modal-form">
+          <input type="hidden" id="modal-mode" value="dev" />
+          <div id="prod-info" style="display:none; margin-bottom:0.75rem;">
+            <div><strong id="prod-name">System Name</strong></div>
+            <div class="muted" id="prod-devsite">dev site url</div>
+          </div>
+
+          <!-- Dev-only fields (hidden for PROD modal) -->
+          <div id="dev-fields">
+            <div class="form-row">
+              <label for="field-name">New ShoWare Control Name</label>
+              <input id="field-name" name="NewShoWareControlName" type="text" />
+              <div class="error" id="err-name"></div>
+            </div>
+            <div class="form-row">
+              <label for="field-db">Database Name</label>
+              <input id="field-db" name="DatabaseName" type="text" />
+              <div class="error" id="err-db"></div>
+            </div>
+          </div>
+
+          <!-- Domain input: shown only for DEV flows. For PROD flows the derived domain is displayed read-only above in prod-info -->
+          <div id="dev-domain" class="form-row">
+            <label for="field-domain">New Website Domain</label>
+            <input id="field-domain" name="NewWebSiteDomain" type="text" />
+            <div class="error" id="err-domain"></div>
+          </div>
+
+          <div id="prod-selects" style="display:none">
+            <div class="form-row">
+              <label for="select-cluster">Web Server Cluster</label>
+              <select id="select-cluster" name="WebServerCluster"></select>
+            </div>
+            <div class="form-row">
+              <label for="select-dbserver">New Database Server</label>
+              <select id="select-dbserver" name="NewDatabaseServer"></select>
+            </div>
+          </div>
+
+          <input type="hidden" id="hidden-gemini" name="GeminiTaskID" />
+          <div class="modal-actions">
+            <button type="button" class="btn" id="modal-cancel">Cancel</button>
+            <button type="submit" class="btn primary" id="modal-submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Server-provided prod option lists for client-side wiring
+      window.SHOWARE_PROD_OPTIONS = {
+        clusters: {{ prod_clusters|tojson }},
+        dbservers: {{ prod_dbservers|tojson }}
+      };
+    </script>
+    <script src="/static/main.js"></script>
+  </body>
+ </html>

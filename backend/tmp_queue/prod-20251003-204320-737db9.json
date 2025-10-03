@@ -1,0 +1,11 @@
+{
+  "JobType": "PROD_SETUP",
+  "WebServerCluster": "us-c1webx",
+  "NewDatabaseServer": "us-clusdb1",
+  "DatabaseName": "sampledb",
+  "ShoWareControl": "qa-sample.showare.net",
+  "CurrentDevWebSiteDomain": "qa-sample.showare.net",
+  "NewWebSiteDomain": "sample.showare.com",
+  "Version": "2.02.28",
+  "GeminiProjID": 1979
+}
