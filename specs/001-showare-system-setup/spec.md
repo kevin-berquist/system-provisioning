@@ -121,7 +121,7 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 - **FR-005**: The app MUST provide a "Setup Production" action for each ready system. When selected, the app MUST open a modal that:
 
    - Displays the selected system's Name and CurrentDevWebSiteDomain clearly
-   - Presents NewWebSiteDomain (required text input) and choice inputs for WebServerCluster and NewDatabaseServer (required selects with options supplied by `PROD_WEBSERVER_CLUSTER_OPTIONS` and `PROD_DATABASE_SERVER_OPTIONS` respectively)
+   - Presents NewWebSiteDomain as a read-only, derived value and choice inputs for WebServerCluster and NewDatabaseServer (required selects with options supplied by `PROD_WEBSERVER_CLUSTER_OPTIONS` and `PROD_DATABASE_SERVER_OPTIONS` respectively). NewWebSiteDomain MUST be deterministically derived from the selected Ready row's `CurrentDevWebSiteDomain` and MUST NOT be editable by the operator in the Production modal.
 
    After the operator confirms valid inputs, the app MUST write a PROD_SETUP JSON into the `queue` folder with JobType `PROD_SETUP`, Version (constant), the selected/entered values, and the selected system's identifying fields.
 
