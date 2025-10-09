@@ -1,0 +1,10 @@
+{
+  "JobType": "DEV_SETUP",
+  "NewShoWareControlName": "X",
+  "DatabaseName": "db",
+  "DatabaseServer": "us-devdb",
+  "WebServer": "us-devweb",
+  "NewWebSiteDomain": "qa.x.showare.net",
+  "NewSystemVersion": "2.02.28",
+  "GeminiTaskID": "000000"
+}

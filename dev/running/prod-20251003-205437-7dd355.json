@@ -1,0 +1,11 @@
+{
+  "JobType": "PROD_SETUP",
+  "WebServerCluster": "us-c1webx",
+  "NewDatabaseServer": "us-clusdb1",
+  "DatabaseName": "jackalopejamboree",
+  "ShoWareControl": "Pendleton Round Up / Jackalope Jamboree",
+  "CurrentDevWebSiteDomain": "qa-jackalopejamboree.showare.net",
+  "NewWebSiteDomain": "qa-jackalopejamboree.showare.net",
+  "Version": "2.02.28",
+  "GeminiProjID": "1980"
+}

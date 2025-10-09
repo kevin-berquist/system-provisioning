@@ -1,0 +1,10 @@
+{
+  "JobType": "DEV_SETUP",
+  "NewShoWareControlName": "Madison Square Garden",
+  "DatabaseName": "madisonsquaregarden",
+  "DatabaseServer": "us-devdb",
+  "WebServer": "us-devweb",
+  "NewWebSiteDomain": "qa-madisonsquaregarden.showare.net",
+  "NewSystemVersion": "2.02.28",
+  "GeminiTaskID": "000000"
+}

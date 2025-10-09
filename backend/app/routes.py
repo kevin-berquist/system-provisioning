@@ -73,7 +73,9 @@ def post_dev_job():
         'NewSystemVersion': current_app.config.get('DEV_SYSTEM_VERSION'),
         'GeminiTaskID': data.get('GeminiTaskID', '000000')
     }
-    path = write_job_json(current_app.config.get('QUEUE_FOLDER'), payload, prefix='dev')
+    # honor configured job file extension (default: .json; dev/test may set .jsontest)
+    ext = current_app.config.get('JOB_FILE_EXTENSION', '.json')
+    path = write_job_json(current_app.config.get('QUEUE_FOLDER'), payload, prefix='dev', extension=ext)
     return jsonify({'filename': path.split('\\')[-1], 'path': path}), 201
 
 @bp.route('/api/jobs/prod', methods=['POST'])
@@ -98,5 +100,6 @@ def post_prod_job():
         'Version': current_app.config.get('PROD_VERSION'),
         'GeminiProjID': data['GeminiProjID']
     }
-    path = write_job_json(current_app.config.get('QUEUE_FOLDER'), payload, prefix='prod')
+    ext = current_app.config.get('JOB_FILE_EXTENSION', '.json')
+    path = write_job_json(current_app.config.get('QUEUE_FOLDER'), payload, prefix='prod', extension=ext)
     return jsonify({'filename': path.split('\\')[-1], 'path': path}), 201

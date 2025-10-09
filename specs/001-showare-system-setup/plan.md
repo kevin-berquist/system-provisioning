@@ -36,9 +36,11 @@
 ## Technical Context
 **Language/Version**: Python 3.11+ (Flask web framework) — chosen per user instruction. Implementation will avoid heavy frameworks and prefer minimal dependencies.
 **Primary Dependencies**: Flask (minimal), pyodbc or Microsoft ODBC Driver for SQL Server + appropriate DB driver wrapper (e.g., SQLAlchemy optional lightweight use for DB models), python-dotenv or similar for configuration loading.
+**Production WSGI Server**: When running in production behind Windows IIS (HttpPlatformHandler or similar), the application MUST be deployed using the Waitress WSGI server to ensure compatibility and predictable behavior on Windows hosts. The plan will include packaging and startup examples for running Flask with Waitress and wiring it to IIS via HttpPlatformHandler.
 **Storage**: Microsoft SQL Server (control DB query and any small local metadata if needed). For small deployments, support SQLite for local testing only; production uses MS SQL.
 **Testing**: pytest for backend/unit tests; simple contract tests using requests or pytest-httpserver for API contracts; integration tests focusing on DB interactions.
 **Target Platform**: Windows Server with IIS hosting (app must be IIS-hostable). Development may target Windows and Linux for local dev but packaging and deployment artifacts must include an IIS-compatible option (e.g., a WSGI handler behind IIS/ARR or a self-contained .NET reverse-proxy approach if desired).
+For production deployments the plan requires use of the Waitress WSGI server behind IIS (HttpPlatformHandler) with documented startup scripts and configuration examples. This choice preserves the Constitution principle of IIS-hosting compatibility while avoiding heavyweight platform-specific hosting code inside the application.
 **Project Type**: Web application (backend API + minimal frontend). Frontend will be vanilla HTML/CSS/JavaScript; server-side templates (Jinja2) are acceptable.
 **Performance Goals**: Modest — support tens of concurrent operators; p95 request latency <200ms for listing operations under typical load (small dataset). Actual targets TBD if needed.
 **Constraints**: Must be hostable on Windows IIS. Avoid external libraries unless justified. All provisioning actions are performed by a pre-existing service — this app only writes JSON to `QUEUE_FOLDER` and reads directory listings.

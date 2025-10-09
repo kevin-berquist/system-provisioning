@@ -36,6 +36,12 @@ highly responsive UI behavior. Developers MUST aim for straightforward, maintain
 accessibility features may be deferred unless legally required for the product. Rationale: backoffice apps often optimize operational efficiency over
 public-facing UX/SEO concerns.
 
+#### UX Consistency: Padding and Container Spacing (MUST)
+UI containers (tables, modals, cards, panels, form containers and other primary UI boxes) MUST use consistent padding on all sides by default
+(equal left/right/top/bottom padding) to provide a stable, predictable layout and a professional, low-friction operator experience. Any
+exceptions to this rule MUST be called out explicitly in the feature spec with a short justification (for example: a data-dense table that
+requires column compacting). This requirement aims to reduce ad-hoc spacing variations and improve visual consistency across features.
+
 ### Principle IV — Database-First Correctness
 Data integrity and clear DB contracts are essential. Schemas, migrations, and data-access patterns MUST be explicit and reviewed. The system MUST
 fail safely when data invariants are violated and include simple, deterministic migration paths. Rationale: backoffice correctness typically

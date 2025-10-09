@@ -22,3 +22,7 @@ def load_config(app):
     app.config['PROD_VERSION'] = os.getenv('PROD_VERSION', '2.02.28')
     app.config['PROD_WEBSERVER_CLUSTER_OPTIONS'] = os.getenv('PROD_WEBSERVER_CLUSTER_OPTIONS', 'us-c1webx,us-c2webx,au-c1webx,uk-c1webx')
     app.config['PROD_DATABASE_SERVER_OPTIONS'] = os.getenv('PROD_DATABASE_SERVER_OPTIONS', 'us-clusdb1,us-clusdb2,au-clusdb1,uk-clusdb1')
+    # Optional: override the job file extension. Default is .json. For development/test deployments
+    # operators may set JOB_FILE_EXTENSION to ".jsontest" to prevent external processors that only
+    # match on .json from picking up files intended for manual inspection.
+    app.config['JOB_FILE_EXTENSION'] = os.getenv('JOB_FILE_EXTENSION', '.json')

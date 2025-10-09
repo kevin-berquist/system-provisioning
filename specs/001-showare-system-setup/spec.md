@@ -139,6 +139,18 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 
 - **FR-009**: The app MUST support configuration of constants and folder paths via a simple server-side configuration (e.g., appsettings or environment variables): `QUEUE_FOLDER`, `RUNNING_FOLDER`, `COMPLETED_FOLDER`, `DEV_DATABASE_SERVER`, `DEV_WEBSERVER`, `DEV_SYSTEM_VERSION`, `PROD_VERSION`, `PROD_WEBSERVER_CLUSTER_OPTIONS`, `PROD_DATABASE_SERVER_OPTIONS`, `CONTROL_DB_CONNECTION`.
 
+ - **FR-013**: Development-only output extension option: The app MUST expose a server-side configuration option that, when enabled for a development or test deployment, causes newly created job files to be written with the extension `.jsontest` instead of `.json.``
+    - Purpose: Prevent the pre-existing provisioning pipeline (which only monitors `.json` files) from automatically consuming test artifacts that are intended for manual inspection on remote/target machines.
+    - Behavior:
+       - When the option is disabled (default), the app writes job files with the normal `.json` extension and behavior is unchanged.
+       - When the option is enabled, the app writes job files with the same filename base but uses the `.jsontest` extension (for example: `devsetup-20251009-120000-abc123.jsontest` or `prodsetup-20251009-120000-xyz789.jsontest`).
+       - The change is purely an output filename extension substitution; the JSON payload structure, metadata fields (including `ShoWareControl`), and written timestamps MUST remain unchanged.
+    - Acceptable configuration surface (examples): a boolean flag or a configurable `JOB_FILE_EXTENSION` value scoped to non-production deployments. The spec intentionally leaves the exact configuration mechanism open (environment variable, config file, or toggle) but requires that it be documented and default to writing `.json` in production.
+    - Testable acceptance criteria:
+       - Given the dev/test extension option is enabled, when a user creates a Dev or Prod job, then the resulting file in the configured `QUEUE_FOLDER` MUST use the `.jsontest` extension and be discoverable via file listing.
+       - Given the option is enabled, the pre-existing provisioning pipeline which filters for `.json` files MUST not pick up `.jsontest` files (this is an external-system behavior to be validated by operators; the app must simply produce `.jsontest` files when enabled).
+       - Given the option is enabled, the UI and listing pages MUST still show the generated filename and remain able to display payload-derived metadata when the app reads the file content for listing purposes.
+
 *Open questions / NEEDS_CLARIFICATION*:
 - **FR-010**: Authentication / authorization: who can create jobs? The prompt doesn't specify; do we require login or restrict via network/host? [NEEDS_CLARIFICATION]
 - **FR-011**: File ownership / naming conventions: any organization-specific filename pattern required? (We propose timestamp+uuid) [NEEDS_CLARIFICATION]

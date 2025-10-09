@@ -20,7 +20,7 @@ body {
 .modal { display:none; position:fixed; inset:0; z-index:40; }
 .modal.open { display:block; }
 .modal-backdrop { position:absolute; inset:0; background:rgba(15,23,42,0.5); }
-.modal-panel { position:relative; width:520px; max-width:calc(100% - 2rem); margin:6vh auto; background:white; border-radius:8px; padding:1rem 1.25rem; box-shadow:0 10px 25px rgba(2,6,23,0.2); }
+.modal-panel { position:relative; width:520px; max-width:calc(100% - 2rem); margin:6vh auto; background:white; border-radius:8px; padding:1rem 1.75rem; box-shadow:0 10px 25px rgba(2,6,23,0.2); }
 .form-row { margin-bottom:0.75rem; }
 .form-row label { display:block; font-weight:600; margin-bottom:0.25rem; }
 .form-row input { width:100%; padding:0.5rem; border-radius:6px; border:1px solid #e6eef6; }
