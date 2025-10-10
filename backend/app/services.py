@@ -25,6 +25,44 @@ def write_job_json(queue_folder, payload, prefix='dev', extension='.json'):
     os.replace(tmp_path, final_path)
     return final_path
 
+def get_existing_prod_database_names(queue_folder, running_folder):
+    """Scan queue and running folders for PROD_SETUP jobs and return set of DatabaseNames.
+    
+    Returns a set of DatabaseName values from existing production jobs to enable 
+    filtering of Ready systems to prevent duplicate production setups.
+    """
+    database_names = set()
+    
+    for folder in [queue_folder, running_folder]:
+        if not folder or not os.path.exists(folder):
+            continue
+            
+        try:
+            for filename in os.listdir(folder):
+                if not filename.endswith(('.json', '.jsontest')):
+                    continue
+                    
+                file_path = os.path.join(folder, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        payload = json.load(f)
+                        
+                    # Check if this is a PROD_SETUP job
+                    if payload.get('JobType') == 'PROD_SETUP':
+                        db_name = payload.get('DatabaseName')
+                        if db_name:
+                            database_names.add(db_name)
+                            
+                except (json.JSONDecodeError, IOError, OSError):
+                    # Skip malformed or unreadable files, continue scanning
+                    continue
+                    
+        except (OSError, IOError):
+            # Skip folders that can't be read, continue with other folder
+            continue
+            
+    return database_names
+
 def get_ready_systems_stub():
     # In production this will query the control DB. Return a sample row for testing.
     return [

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app, render_template
-from .services import write_job_json
+from .services import write_job_json, get_existing_prod_database_names
 from .db import get_ready_systems
 import os
 import json
@@ -10,6 +10,18 @@ bp = Blueprint('routes', __name__)
 @bp.route('/')
 def index():
     ready = get_ready_systems(current_app.config.get('CONTROL_DB_CONNECTION'))
+    
+    # Filter ready systems to exclude those with existing production jobs
+    existing_prod_databases = get_existing_prod_database_names(
+        current_app.config.get('QUEUE_FOLDER'),
+        current_app.config.get('RUNNING_FOLDER')
+    )
+    
+    # Filter out systems that already have production jobs
+    filtered_ready = [
+        system for system in ready 
+        if system.get('DatabaseName') not in existing_prod_databases
+    ]
 
     def read_job_folder(folder):
         items = []
@@ -50,7 +62,7 @@ def index():
         prod_dbservers = []
 
     return render_template(
-        'index.html', ready=ready, queued=queued, running=running,
+        'index.html', ready=filtered_ready, queued=queued, running=running,
         prod_clusters=prod_clusters, prod_dbservers=prod_dbservers
     )
 
@@ -81,13 +93,18 @@ def post_dev_job():
 @bp.route('/api/jobs/prod', methods=['POST'])
 def post_prod_job():
     data = request.get_json() or {}
-    # Production modal should not ask for NewShoWareControlName or NewWebSiteDomain
-    required = ['DatabaseName', 'GeminiProjID']
+    # Production modal now requires NewWebSiteDomain as user input
+    required = ['DatabaseName', 'GeminiProjID', 'NewWebSiteDomain']
     missing = [f for f in required if not data.get(f)]
     if missing:
         return jsonify({'error': 'missing fields', 'fields': missing}), 400
-    # Derive NewWebSiteDomain from the selected Ready row's CurrentDevWebSiteDomain unless explicitly provided
-    new_site = data.get('NewWebSiteDomain') or data.get('CurrentDevWebSiteDomain') or ''
+    
+    # Validate domain format for NewWebSiteDomain
+    import re
+    domain = data.get('NewWebSiteDomain', '').strip()
+    if not re.match(r'^([a-z0-9-]+\.)+[a-z]{2,}$', domain, re.IGNORECASE):
+        return jsonify({'error': 'invalid domain format', 'field': 'NewWebSiteDomain'}), 400
+    
     payload = {
         'JobType': 'PROD_SETUP',
         'WebServerCluster': data.get('WebServerCluster', current_app.config.get('PROD_WEBSERVER_CLUSTER_OPTIONS').split(',')[0]),
@@ -96,7 +113,7 @@ def post_prod_job():
         # include ShoWareControl derived from the ready row name if present
         'ShoWareControl': data.get('ShoWareControl') or data.get('Name') or data.get('CurrentDevWebSiteDomain'),
         'CurrentDevWebSiteDomain': data.get('CurrentDevWebSiteDomain'),
-        'NewWebSiteDomain': new_site,
+        'NewWebSiteDomain': domain,
         'Version': current_app.config.get('PROD_VERSION'),
         'GeminiProjID': data['GeminiProjID']
     }
