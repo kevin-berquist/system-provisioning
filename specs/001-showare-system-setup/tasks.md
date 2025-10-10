@@ -71,7 +71,10 @@
 
 - T013 Implement UI pages (vanilla HTML/CSS/JS)
   - Files: `backend/templates/index.html`, `backend/static/main.css`, `backend/static/main.js`
-  - Pages: Main screen lists queued/running files and ready-for-production list; Create Dev Site form modal/button; Setup Production button per system.
+  - Pages: Main screen lists queued/running files and ready-for-production list; Create Dev Site form modal/button; Setup Production button per system
+  - Modal requirements: In-page modal dialogs with inline validation, no native prompt()/alert() usage
+  - UI consistency: Apply equal padding to all UI containers (tables, modals, cards, panels) per constitution
+  - Path: `backend/templates/`, `backend/static/`
 
 ## Phase 3.4: Integration
 - T014 Connect DB service to control DB and wire `get_ready_systems()` into the main page
@@ -95,11 +98,27 @@
 
 - T020 [P] Add CI job (optional): run unit tests and DB integration smoke tests using a test MS SQL or dockerized instance
 
+- T021 [P] Implement configurable file extension for dev/test environments
+  - Add JOB_FILE_EXTENSION configuration option to `backend/app/config.py`
+  - Update file writer service in `backend/app/services.py` to use configurable extension
+  - Update both dev and prod endpoints to pass extension parameter
+  - Add integration test to verify .jsontest files are created when extension is configured
+  - Path: `backend/app/config.py`, `backend/app/services.py`, `backend/app/routes.py`
+
+- T022 [P] Implement NewWebSiteDomain prepopulation for Dev modal
+  - Add JavaScript logic to `backend/static/main.js` to auto-populate domain field with pattern `qa-{DatabaseName}.showare.net`
+  - Trigger prepopulation when DatabaseName field changes (onchange/oninput events)
+  - Allow operators to edit the prepopulated value
+  - Add validation to ensure prepopulated pattern matches expected format
+  - Path: `backend/static/main.js`
+
 ## Dependencies
 - Tests (T004-T007) before implementation (T008-T013)
 - T008 config loader blocks many items dependent on constants
 - T009 (FileWriter) blocks T011 and T012
 - T010 (DB service) blocks T014
+- T021 (configurable extension) requires T008 (config loader) and T009 (file writer)
+- T022 (domain prepopulation) requires T013 (UI implementation)
 
 ## Parallel Example
 ```

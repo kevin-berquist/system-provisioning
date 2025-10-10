@@ -7,7 +7,7 @@
   - DatabaseName: string (required)
   - DatabaseServer: string (constant, e.g., `us-devdb`)
   - WebServer: string (constant, e.g., `us-devweb`)
-  - NewWebSiteDomain: string (required, must validate domain format)
+  - NewWebSiteDomain: string (required, must validate domain format; UI should prepopulate as `qa-{DatabaseName}.showare.net` where `{DatabaseName}` is the provided DatabaseName input)
   - NewSystemVersion: string (constant)
   - GeminiTaskID: string (optional)
   - CreatedAt: datetime
@@ -18,7 +18,7 @@
   - NewDatabaseServer: enum (us-clusdb1, us-clusdb2, au-clusdb1, uk-clusdb1)
   - DatabaseName: string (sourced from ReadySystemRow; MUST NOT be collected from the operator in the Production modal — presented as a read-only confirmation field)
   - CurrentDevWebSiteDomain: string (sourced from ReadySystemRow; presented read-only in the Production modal)
-  - NewWebSiteDomain: string (derived for Prod flows; MUST be deterministically derived from `CurrentDevWebSiteDomain` and MUST NOT be editable or displayed to the operator in the Production modal)
+  - NewWebSiteDomain: string (required user input; MUST be provided by the operator in valid domain format in the Production modal)
   - Version: string (constant)
   - GeminiProjID: string (sourced from ReadySystemRow)
   - CreatedAt: datetime
@@ -37,7 +37,7 @@
   - Usage: Included in `PROD_SETUP` JSON payloads as the authoritative display name for Prod-originated job files and used by the UI when displaying queued/running jobs.
 
 ## Validation Rules
-- NewWebSiteDomain must be a valid domain-like string and not empty.
+- NewWebSiteDomain must be a valid domain-like string and not empty (applies to both Dev and Production job creation).
 - DatabaseName must match DB naming conventions (alphanumeric, dashes).
 - GeminiProjID must be numeric and non-zero for production-ready rows.
 

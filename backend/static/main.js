@@ -44,13 +44,13 @@
       prodSelects.style.display = 'block';
       // hide dev-only inputs in prod modal
       if (devFields) devFields.style.display = 'none';
-      // hide domain input in prod modal (domain is derived from CurrentDevWebSiteDomain)
-      const devDomainEl = document.getElementById('dev-domain'); if (devDomainEl) devDomainEl.style.display = 'none';
+      // show domain input in prod modal (domain is required user input)
+      const devDomainEl = document.getElementById('dev-domain'); if (devDomainEl) devDomainEl.style.display = 'block';
       // populate prod-info display
       prodName.textContent = opts.values?.Name || '';
       prodDevsite.textContent = opts.values?.CurrentDevWebSiteDomain || '';
-      // prefill domain input from CurrentDevWebSiteDomain for convenience
-      fDomain.value = opts.values?.CurrentDevWebSiteDomain || opts.values?.NewWebSiteDomain || '';
+      // clear domain input - operators must provide their own production domain
+      fDomain.value = opts.values?.NewWebSiteDomain || '';
       // prefill db and make readonly to prevent accidental edits
       fDb.value = opts.values?.DatabaseName || '';
       fDb.setAttribute('readonly', 'true');
@@ -62,6 +62,10 @@
       // show domain input for dev flows
       const devDomainEl = document.getElementById('dev-domain'); if (devDomainEl) devDomainEl.style.display = 'block';
       fDb.removeAttribute('readonly');
+      // Trigger domain prepopulation for Dev modal if DatabaseName is already populated
+      if (fDb.value.trim()) {
+        prepopulateDomainForDev();
+      }
     }
   }
 
@@ -80,6 +84,21 @@
     const ed = document.getElementById('err-dbserver'); if (ed) ed.remove();
   }
 
+  function prepopulateDomainForDev() {
+    // Only prepopulate for Dev modal
+    if (modalMode.value !== 'dev') return;
+    
+    const dbName = fDb.value.trim();
+    if (dbName) {
+      // Generate domain pattern: qa-{DatabaseName}.showare.net
+      const prepopulatedDomain = `qa-${dbName}.showare.net`;
+      fDomain.value = prepopulatedDomain;
+    } else {
+      // Clear domain if database name is empty
+      fDomain.value = '';
+    }
+  }
+
   function validate() {
     clearErrors();
     let ok = true;
@@ -87,11 +106,9 @@
   if (modalMode.value !== 'prod' && !fName.value.trim()) { document.getElementById('err-name').textContent = 'Required'; ok = false; }
   if (!fDb.value.trim()) { document.getElementById('err-db').textContent = 'Required'; ok = false; }
     const d = fDomain.value.trim();
-    // Domain validation only for DEV flows; for PROD it's derived and not editable
-    if (modalMode.value !== 'prod') {
-      if (!d) { document.getElementById('err-domain').textContent = 'Required'; ok = false; }
-      else if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(d)) { document.getElementById('err-domain').textContent = 'Invalid domain format'; ok = false; }
-    }
+    // Domain validation for both DEV and PROD flows - now required for both
+    if (!d) { document.getElementById('err-domain').textContent = 'Required'; ok = false; }
+    else if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(d)) { document.getElementById('err-domain').textContent = 'Invalid domain format'; ok = false; }
 
     // If prod mode, ensure selects are chosen
     if (modalMode.value === 'prod') {
@@ -112,8 +129,8 @@
     let payload = Object.assign({}, base);
   // common fields
   payload.DatabaseName = fDb.value.trim();
-  // For PROD_SETUP the NewWebSiteDomain should be derived from the selected row's CurrentDevWebSiteDomain by default
-  payload.NewWebSiteDomain = (form.dataset.jobType === 'PROD_SETUP') ? (base.CurrentDevWebSiteDomain || fDomain.value.trim()) : fDomain.value.trim();
+  // NewWebSiteDomain is now user-provided for both DEV and PROD flows
+  payload.NewWebSiteDomain = fDomain.value.trim();
     // attach appropriate gemini field name depending on job type
     if (form.dataset.jobType === 'PROD_SETUP') {
       payload.GeminiProjID = hiddenGemini.value || payload.GeminiProjID;
@@ -146,6 +163,10 @@
       alert('Failed to create job (see console for details)');
     });
   });
+
+  // Add event listeners for domain prepopulation in Dev modal
+  fDb.addEventListener('input', prepopulateDomainForDev);
+  fDb.addEventListener('change', prepopulateDomainForDev);
 
   // wire Create Dev Site button
   document.getElementById('create-dev').addEventListener('click', function(){
