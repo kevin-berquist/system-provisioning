@@ -78,19 +78,23 @@ Rationale: operations personnel need a low-friction way to create the JSON files
    - CurrentDevWebSiteDomain (dev site URL)
 
    The UI should present these fields prominently so operators can quickly identify the correct system to act on.
+
+   **Additionally**, the Ready for Production list MUST exclude any system that already has a production job (queued or running) with the same DatabaseName to prevent duplicate production setups. The app MUST scan both the `queue` and `running` folders for `PROD_SETUP` job files, extract the DatabaseName from each JSON payload, and filter out any Ready system with a matching DatabaseName.
 4. **Given** a user clicks "Setup Production" for a ready system, **When** the setup modal opens, **Then** the modal MUST prominently display the selected system's Name and CurrentDevWebSiteDomain (dev site URL) so the operator can confirm the target system.
 
    The Setup Production modal MUST collect the following inputs from the user before creating the job JSON:
 
    - WebServerCluster (select) — required, options come from `PROD_WEBSERVER_CLUSTER_OPTIONS` (e.g., us-c1webx, us-c2webx, au-c1webx, uk-c1webx)
    - NewDatabaseServer (select) — required, options come from `PROD_DATABASE_SERVER_OPTIONS` (e.g., us-clusdb1, us-clusdb2, au-clusdb1, uk-clusdb1)
-   - NewWebSiteDomain (string) — MUST NOT be entered by the operator. It MUST be derived deterministically from the selected Ready row's `CurrentDevWebSiteDomain` (for example: adjust an environment hostname component). The derived value MUST be included in the produced PROD_SETUP JSON but SHOULD NOT be editable in the modal.
+   - NewWebSiteDomain (text field) — required, must be provided by the operator in a valid domain format (e.g., "prod.example.showare.net"). The app MUST validate the domain format before allowing submission.
 
-   When the operator confirms, **Then** the app writes a JSON file into the `queue` folder with JobType `PROD_SETUP` and required production fields (constants filled by the app, values selected by the user for WebServerCluster/NewDatabaseServer, and NewWebSiteDomain derived from the selected system's CurrentDevWebSiteDomain). The selected system's DatabaseName/CurrentDevWebSiteDomain/GeminiProjID MUST be included in the payload.
+   When the operator confirms, **Then** the app writes a JSON file into the `queue` folder with JobType `PROD_SETUP` and required production fields (constants filled by the app, values selected by the user for WebServerCluster/NewDatabaseServer/NewWebSiteDomain). The selected system's DatabaseName/CurrentDevWebSiteDomain/GeminiProjID MUST be included in the payload.
 
    Additionally, the produced `PROD_SETUP` JSON MUST include a `ShoWareControl` field containing the canonical ShoWare control `Name` value derived from the Ready row used to open the modal. The UI MUST prefer `ShoWareControl` when displaying the name for Prod-originated job entries in Queued and Running lists. If `ShoWareControl` is absent, the UI should fall back to `NewShoWareControlName` or a filename-derived placeholder.
 
    NOTE: The Setup Production modal MUST NOT collect NewShoWareControlName or DatabaseName as input fields — those values are provided by the selected Ready row and must be displayed as read-only confirmation fields in the modal. Operators should not be able to edit DatabaseName or the system's canonical Name from the Production modal.
+
+5. **Given** there are existing `PROD_SETUP` job files in the `queue` or `running` folders with DatabaseName "MyTestDB", **When** the main screen loads the Ready for Production list, **Then** any system with DatabaseName "MyTestDB" MUST be excluded from the Ready list to prevent duplicate production setups. The filtering MUST work regardless of whether the existing job is queued (pending) or running (in progress).
 
 ### Edge Cases
 - The `queue` or `running` directory is not present or permissions prevent writing/reading → the app should show a clear error and guidance to operators.
@@ -108,7 +112,7 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 - **FR-001**: The app MUST present a Create Dev Site form. The form fields that the user must provide are:
    - NewShoWareControlName (string)
    - DatabaseName (string)
-   - NewWebSiteDomain (string)
+   - NewWebSiteDomain (string) — the UI MUST prepopulate this field with the pattern `qa-{DatabaseName}.showare.net` where `{DatabaseName}` is the value entered in the DatabaseName field. The prepopulated value can be edited by the operator if needed.
    - GeminiTaskID (string) — optional, may default to `000000` if not provided
    The app MUST populate the remaining Dev JSON fields automatically (JobType = `DEV_SETUP`, DatabaseServer, WebServer, NewSystemVersion are constants configured in app settings).
 
@@ -116,20 +120,22 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 
 - **FR-003**: The app MUST list files present in the configured `queue` folder (show file name, creation time) and list files present in the configured `running` folder.
 
-- **FR-004**: The app MUST query the ShoWare control database using the supplied SQL to determine systems ready for production and display the returned rows with at least Name, DatabaseName, GeminiProjID, CurrentDevWebSiteDomain.
+- **FR-004**: The app MUST query the ShoWare control database using the supplied SQL to determine systems ready for production and display the returned rows with at least Name, DatabaseName, GeminiProjID, CurrentDevWebSiteDomain. The list MUST exclude systems that already have production jobs (queued or running) with the same DatabaseName to prevent duplicate production setups.
 
 - **FR-005**: The app MUST provide a "Setup Production" action for each ready system. When selected, the app MUST open a modal that:
 
    - Displays the selected system's Name and CurrentDevWebSiteDomain clearly
-   - Presents NewWebSiteDomain as a read-only, derived value and choice inputs for WebServerCluster and NewDatabaseServer (required selects with options supplied by `PROD_WEBSERVER_CLUSTER_OPTIONS` and `PROD_DATABASE_SERVER_OPTIONS` respectively). NewWebSiteDomain MUST be deterministically derived from the selected Ready row's `CurrentDevWebSiteDomain` and MUST NOT be editable by the operator in the Production modal.
+   - Presents input fields for WebServerCluster and NewDatabaseServer (required selects with options supplied by `PROD_WEBSERVER_CLUSTER_OPTIONS` and `PROD_DATABASE_SERVER_OPTIONS` respectively) and NewWebSiteDomain (required text field that must be provided by the operator in valid domain format).
 
    After the operator confirms valid inputs, the app MUST write a PROD_SETUP JSON into the `queue` folder with JobType `PROD_SETUP`, Version (constant), the selected/entered values, and the selected system's identifying fields.
 
 - **FR-006**: The app MUST NOT move, delete, or otherwise process job files beyond writing the JSON file to the `queue` folder and reading `queue`/`running` directory contents.
 
-- **FR-007**: The app MUST validate user inputs (domain format for NewWebSiteDomain, non-empty DatabaseName/NewShoWareControlName) and present user-facing errors.
-
- - **FR-007**: The app MUST validate user inputs (domain format for NewWebSiteDomain). For the Setup Production modal the DatabaseName and system Name MUST be treated as read-only—validation for those fields is only required for Dev form flows where operators provide them.
+- **FR-007**: The app MUST validate user inputs and present user-facing errors:
+   - Domain format validation for NewWebSiteDomain (both Dev and Production jobs)
+   - Non-empty validation for DatabaseName/NewShoWareControlName (Dev jobs)
+   - Required field validation for Production jobs including NewWebSiteDomain
+   - All validation errors MUST be displayed as inline messages within the modal interface
 
 - **FR-007-ui**: The app's main screen and input flows MUST present a modern, sleek user interface. Inputs that require additional information (Create Dev Site, Setup Production) MUST use in-page modal dialogs or slide-over panels with form fields and inline validation. The implementation MUST NOT use native JavaScript prompt() dialogs or alert() for collecting input; these are disallowed.
 
