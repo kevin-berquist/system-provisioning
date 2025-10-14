@@ -152,3 +152,7 @@ Desktop.ini
 *.env
 *.env.*
 .envrc
+backend/app/__pycache__/__init__.cpython-312.pyc
+backend/app/__pycache__/__init__.cpython-312.pyc
+backend/app/__pycache__/config.cpython-312.pyc
+/backend/app/__pycache__

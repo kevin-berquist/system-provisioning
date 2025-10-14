@@ -71,7 +71,7 @@ Rationale: operations personnel need a low-friction way to create the JSON files
    - CurrentDevWebSiteDomain (if present in the payload) — presented as the dev site URL
 
    If a job file's JSON is malformed or missing fields, the UI MUST still present the file (using filename and timestamp) and display a clear placeholder such as "(missing metadata)" for missing values.
-3. **Given** the ShoWare control database is reachable and the control query returns rows, **When** the main screen is loaded, **Then** the app shows a list of systems that match the supplied query and displays a "Setup Production" button for each listed system. Each row in the Ready for Production list MUST include, at minimum:
+3. **Given** the ShoWare control database is reachable and the control query returns rows, **When** the main screen is loaded, **Then** the app validates the calling user (see Scenario 6) and, once authorized, shows a list of systems that match the supplied query and displays a "Setup Production" button for each listed system. Each row in the Ready for Production list MUST include, at minimum:
 
    - Name
    - DatabaseName
@@ -96,11 +96,14 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 
 5. **Given** there are existing `PROD_SETUP` job files in the `queue` or `running` folders with DatabaseName "MyTestDB", **When** the main screen loads the Ready for Production list, **Then** any system with DatabaseName "MyTestDB" MUST be excluded from the Ready list to prevent duplicate production setups. The filtering MUST work regardless of whether the existing job is queued (pending) or running (in progress).
 
+6. **Given** the `enforce_auth` configuration flag is enabled, **When** any request reaches the application (UI view or API endpoint), **Then** the server MUST first make a backend GET call to the configured `auth_url` including the caller's `UserAccount` cookie. Only if the response body contains the text `AUTH OK` MAY the request proceed; otherwise the application MUST return HTTP 401 without performing further processing.
+
 ### Edge Cases
 - The `queue` or `running` directory is not present or permissions prevent writing/reading → the app should show a clear error and guidance to operators.
 - Two users simultaneously create a job with the same generated filename → ensure file naming avoids collisions (timestamp + UUID pattern).
 - The control DB query is slow or unreachable → the app should show an offline/error state and allow retries.
 - The provisioning service rejects or fails a job after it's moved to `running` → the app should not attempt to process files but could surface failure metadata if an external status API is available (NEEDS_CLARIFICATION).
+- The authentication endpoint (`AUTH_URL`) is unreachable, times out, or returns an unexpected payload → the app must fail the request with HTTP 401 and surface an operator-visible error explaining that authentication could not be confirmed.
 
 ### Edge Cases
 - What happens when [boundary condition]?
@@ -143,7 +146,9 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 
 - **FR-008**: The app MUST log operations (create job, write file, DB query status, errors) with sufficient detail for operators to diagnose issues.
 
-- **FR-009**: The app MUST support configuration of constants and folder paths via a simple server-side configuration (e.g., appsettings or environment variables): `QUEUE_FOLDER`, `RUNNING_FOLDER`, `COMPLETED_FOLDER`, `DEV_DATABASE_SERVER`, `DEV_WEBSERVER`, `DEV_SYSTEM_VERSION`, `PROD_VERSION`, `PROD_WEBSERVER_CLUSTER_OPTIONS`, `PROD_DATABASE_SERVER_OPTIONS`, `CONTROL_DB_CONNECTION`.
+- **FR-009**: The app MUST support configuration of constants and folder paths via a simple server-side configuration (e.g., appsettings or environment variables): `QUEUE_FOLDER`, `RUNNING_FOLDER`, `COMPLETED_FOLDER`, `DEV_DATABASE_SERVER`, `DEV_WEBSERVER`, `DEV_SYSTEM_VERSION`, `PROD_VERSION`, `PROD_WEBSERVER_CLUSTER_OPTIONS`, `PROD_DATABASE_SERVER_OPTIONS`, `CONTROL_DB_CONNECTION`, `ENFORCE_AUTH`, and `AUTH_URL` (defaulting to `https://qa-manager.showare.com/include/auth.asp`).
+
+- **FR-010**: When `ENFORCE_AUTH` is set to true, the application MUST perform a server-side GET request to the configured `AUTH_URL` for every incoming request (UI or API) before executing feature logic. The request MUST include the `UserAccount` cookie value received from the caller. If and only if the response body contains the literal text `AUTH OK`, processing may continue; otherwise the application MUST terminate the request with HTTP 401 Unauthorized and no side effects.
 
  - **FR-013**: Development-only output extension option: The app MUST expose a server-side configuration option that, when enabled for a development or test deployment, causes newly created job files to be written with the extension `.jsontest` instead of `.json.``
     - Purpose: Prevent the pre-existing provisioning pipeline (which only monitors `.json` files) from automatically consuming test artifacts that are intended for manual inspection on remote/target machines.
@@ -158,7 +163,6 @@ Rationale: operations personnel need a low-friction way to create the JSON files
        - Given the option is enabled, the UI and listing pages MUST still show the generated filename and remain able to display payload-derived metadata when the app reads the file content for listing purposes.
 
 *Open questions / NEEDS_CLARIFICATION*:
-- **FR-010**: Authentication / authorization: who can create jobs? The prompt doesn't specify; do we require login or restrict via network/host? [NEEDS_CLARIFICATION]
 - **FR-011**: File ownership / naming conventions: any organization-specific filename pattern required? (We propose timestamp+uuid) [NEEDS_CLARIFICATION]
 - **FR-012**: Should the app allow overriding constant fields in exceptional cases (e.g., non-standard WebServer or DatabaseServer)? [NEEDS_CLARIFICATION]
 

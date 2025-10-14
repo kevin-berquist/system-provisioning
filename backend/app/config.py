@@ -26,3 +26,5 @@ def load_config(app):
     # operators may set JOB_FILE_EXTENSION to ".jsontest" to prevent external processors that only
     # match on .json from picking up files intended for manual inspection.
     app.config['JOB_FILE_EXTENSION'] = os.getenv('JOB_FILE_EXTENSION', '.json')
+    app.config['ENFORCE_AUTH'] = os.getenv('ENFORCE_AUTH', 'true').lower() in {'1', 'true', 'yes', 'on'}
+    app.config['AUTH_URL'] = os.getenv('AUTH_URL', 'https://qa-manager.showare.com/include/auth.asp')
