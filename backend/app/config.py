@@ -8,7 +8,7 @@ def load_config(app):
     # Provider=SQLOLEDB;Data Source=us-mgtdb;Initial Catalog=ShoWareControl;User Id=showareuser;Password=ticketprinting;
     # Converted to a pyodbc/ODBC-style connection string. Adjust DRIVER as needed on your host.
     default_conn = (
-        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "DRIVER={ODBC Driver 18 for SQL Server};"
         "SERVER=us-mgtdb;"
         "DATABASE=ShoWareControl;"
         "UID=showareuser;"

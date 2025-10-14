@@ -123,8 +123,9 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+    const api_prefix = '/system-provisioning';
     if (!validate()) return;
-    const endpoint = form.dataset.endpoint;
+    const endpoint = api_prefix + form.dataset.endpoint;
     const base = JSON.parse(form.dataset.payloadBase || '{}');
     let payload = Object.assign({}, base);
   // common fields

@@ -5,7 +5,7 @@ import os
 import json
 from datetime import datetime
 
-bp = Blueprint('routes', __name__)
+bp = Blueprint('routes', __name__,url_prefix="/system-provisioning")
 
 @bp.route('/')
 def index():
