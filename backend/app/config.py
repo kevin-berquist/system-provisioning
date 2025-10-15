@@ -28,3 +28,4 @@ def load_config(app):
     app.config['JOB_FILE_EXTENSION'] = os.getenv('JOB_FILE_EXTENSION', '.json')
     app.config['ENFORCE_AUTH'] = os.getenv('ENFORCE_AUTH', 'true').lower() in {'1', 'true', 'yes', 'on'}
     app.config['AUTH_URL'] = os.getenv('AUTH_URL', 'https://qa-manager.showare.com/include/auth.asp')
+    app.config['DEBUG_AUTH_REQUEST'] = os.getenv('DEBUG_AUTH_REQUEST', 'false').lower() in {'1', 'true', 'yes', 'on'}
