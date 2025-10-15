@@ -22,11 +22,19 @@ def create_app(config_object=None):
             return ("Unauthorized", 401)
 
         user_account = request.cookies.get('UserAccount')
+        user_logged_in = request.cookies.get('UserLoggedIn')
+        
         if not user_account:
             return ("Unauthorized", 401)
 
         req = urllib.request.Request(auth_url)
-        req.add_header('Cookie', f'UserAccount={user_account}')
+        
+        # Build cookie header with both UserAccount and UserLoggedIn (if present)
+        cookie_parts = [f'UserAccount={user_account}']
+        if user_logged_in:
+            cookie_parts.append(f'UserLoggedIn={user_logged_in}')
+        cookie_header = '; '.join(cookie_parts)
+        req.add_header('Cookie', cookie_header)
 
         debug_auth = current_app.config.get('DEBUG_AUTH_REQUEST', False)
         debug_info = []
