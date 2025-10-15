@@ -144,6 +144,8 @@ Rationale: operations personnel need a low-friction way to create the JSON files
 
    The validation behavior called out in FR-007 should surface inline validation messages inside the modal and prevent submission until required fields are satisfied.
 
+- **FR-015**: The app MUST provide a green refresh button with a refresh icon positioned next to the "Create Dev Site" button. The refresh button MUST be the same size and shape as the "Create Dev Site" button. When clicked, the refresh button MUST reload the entire page to refresh all data displays including job lists and ready systems.
+
 - **FR-008**: The app MUST log operations (create job, write file, DB query status, errors) with sufficient detail for operators to diagnose issues.
 
 - **FR-009**: The app MUST support configuration of constants and folder paths via a simple server-side configuration (e.g., appsettings or environment variables): `QUEUE_FOLDER`, `RUNNING_FOLDER`, `COMPLETED_FOLDER`, `DEV_DATABASE_SERVER`, `DEV_WEBSERVER`, `DEV_SYSTEM_VERSION`, `PROD_VERSION`, `PROD_WEBSERVER_CLUSTER_OPTIONS`, `PROD_DATABASE_SERVER_OPTIONS`, `CONTROL_DB_CONNECTION`, `ENFORCE_AUTH`, `AUTH_URL` (defaulting to `https://qa-manager.showare.com/include/auth.asp`), and `DEBUG_AUTH_REQUEST`.

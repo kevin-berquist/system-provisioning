@@ -1,4 +1,12 @@
 (() => {
+  // Refresh button functionality
+  const refreshBtn = document.getElementById('refresh-page');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      window.location.reload();
+    });
+  }
+
   // Lightweight modal helper
   const modal = document.getElementById('modal');
   const backdrop = document.getElementById('modal-backdrop');
